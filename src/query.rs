@@ -52,6 +52,17 @@ mod native {
         pub fn start_byte_for_pattern(&self, pattern_index: usize) -> usize {
             self.inner.start_byte_for_pattern(pattern_index)
         }
+
+        #[inline]
+        pub fn serialize(&self) -> Option<&'static [u8]> {
+            self.inner.serialize()
+        }
+
+        #[inline]
+        pub fn deserialize(bytes: &[u8], language: &Language, source: &str) -> Result<Self, QueryError> {
+            let inner = tree_sitter::Query::deserialize(bytes, &language.inner, source)?;
+            Ok(Self { inner })
+        }
     }
 
     impl std::fmt::Debug for Query {
@@ -67,20 +78,15 @@ mod native {
         }
     }
 
-    impl std::panic::RefUnwindSafe for Query {
-    }
+    impl std::panic::RefUnwindSafe for Query {}
 
-    unsafe impl Send for Query {
-    }
+    unsafe impl Send for Query {}
 
-    unsafe impl Sync for Query {
-    }
+    unsafe impl Sync for Query {}
 
-    impl Unpin for Query {
-    }
+    impl Unpin for Query {}
 
-    impl std::panic::UnwindSafe for Query {
-    }
+    impl std::panic::UnwindSafe for Query {}
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -116,14 +122,12 @@ mod wasm {
                 .matches(&node.inner, None, None)
                 .into_vec()
                 .into_iter()
-                .map(|value| {
-                    value.unchecked_into::<web_tree_sitter::QueryMatch>().into()
-                })
+                .map(|value| value.unchecked_into::<web_tree_sitter::QueryMatch>().into())
         }
 
         #[inline]
         pub fn capture_names(&self) -> Vec<String> {
-            // The Wasm code does not use this when looking up 
+            // The Wasm code does not use this when looking up
             // QueryCapture::name, the way the native code needs to.
             vec![]
         }
@@ -135,12 +139,21 @@ mod wasm {
                 .predicates_for_pattern(index)
                 .into_vec()
                 .into_iter()
-                .map(|value| {
-                    value.unchecked_into::<web_tree_sitter::QueryPredicate>().into()
-                })
+                .map(|value| value.unchecked_into::<web_tree_sitter::QueryPredicate>().into())
                 .collect();
 
             predicates
+        }
+
+        #[inline]
+        pub fn serialize(&self) -> Option<&'static [u8]> {
+            self.inner.serialize()
+        }
+
+        #[inline]
+        pub fn deserialize(bytes: &[u8], language: &Language, source: &str) -> Result<Self, QueryError> {
+            let inner = tree_sitter::Query::deserialize(bytes, &language.inner, source)?;
+            Ok(Self { inner })
         }
     }
 
@@ -164,20 +177,15 @@ mod wasm {
         }
     }
 
-    impl std::panic::RefUnwindSafe for Query {
-    }
+    impl std::panic::RefUnwindSafe for Query {}
 
-    unsafe impl Send for Query {
-    }
+    unsafe impl Send for Query {}
 
-    unsafe impl Sync for Query {
-    }
+    unsafe impl Sync for Query {}
 
-    impl Unpin for Query {
-    }
+    impl Unpin for Query {}
 
-    impl std::panic::UnwindSafe for Query {
-    }
+    impl std::panic::UnwindSafe for Query {}
 }
 
 #[cfg(target_arch = "wasm32")]
